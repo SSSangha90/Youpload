@@ -3,30 +3,32 @@ const Youtube = require("youtube-api"),
     readJson = require("r-json"), 
     Lien = require("lien"),
     Logger = require("bug-killer"), 
-    opn = require("opn"), 
+    opn = require("opn"),
     prettyBytes = require("pretty-bytes");
 
 const CREDENTIALS = readJson(`${__dirname}/client_secret.json`);
 
 // Init lien server
 let server = new Lien({
-    host: "localhost"
-  , port: 5000
+    host: "localhost",
+    port: 5000
 });
 
 // Authenticate
 // You can access the Youtube resources via OAuth2 only.
 // https://developers.google.com/youtube/v3/guides/moving_to_oauth#service_accounts
 let oauth = Youtube.authenticate({
-    type: "oauth", 
+    type: "oauth",
+    //grant_type: "client_credentials", 
     client_id: CREDENTIALS.web.client_id, 
     client_secret: CREDENTIALS.web.client_secret, 
     redirect_url: CREDENTIALS.web.redirect_uris[0]
 });
 
 opn(oauth.generateAuthUrl({
-    access_type: "offline"
-  , scope: ["https://www.googleapis.com/auth/youtube.upload"]
+    access_type: "offline",
+    //approval_prompt: "force",
+    scope: ["https://www.googleapis.com/auth/youtube.upload"]
 }));
 
 // Handle oauth2 callback
@@ -50,7 +52,8 @@ server.addPage("/oauth2callback", lien => {
                 // Video title and description
                 snippet: {
                     title: "Testing YoutTube API NodeJS module",
-                    description: "Test video upload via YouTube API"
+                    description: "Test video upload via YouTube API",
+                    tags: "NodeJS, testing, youtube, API, upload" // Tags
                 },
                 // I don't want to spam my subscribers
                 status: {
@@ -71,7 +74,7 @@ server.addPage("/oauth2callback", lien => {
 
         setInterval(function () {
             Logger.log(`${prettyBytes(req.req.connection._bytesDispatched)} bytes uploaded.`);
-        }, 250);
+        }, 500);
     });
 });
     
